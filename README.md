@@ -2,14 +2,17 @@
 
 一个简洁美观的倒计时管理应用，帮助你管理重要事件，到期时自动播放音频提醒。
 
+**在线体验：https://countdown-di-di-di.vercel.app/**
+
 ## 功能特性
 
 - ✅ **添加倒计时** - 支持自定义时间或指定日期时间
-- 🔔 **音频提醒** - 倒计时到期时自动播放提醒音
+- 🔔 **音频提醒** - 倒计时到期时自动播放提醒音（无延迟）
 - 📋 **任务管理** - 标记完成、重新开始、删除倒计时
 - 🔍 **搜索筛选** - 按标题搜索和按时间范围筛选
 - 💾 **本地存储** - 数据自动保存到浏览器本地存储
 - 🎨 **美观界面** - 响应式设计，支持移动端和桌面端
+- 🌐 **在线部署** - 已部署到 Vercel，可直接访问
 
 ## 技术栈
 
@@ -18,6 +21,7 @@
 - **Tailwind CSS** - 样式框架
 - **shadcn/ui** - UI 组件库
 - **Lucide React** - 图标库
+- **Vercel** - 部署平台
 
 ## 快速开始
 
@@ -85,6 +89,7 @@ yarn preview
 ├── index.html
 ├── package.json
 ├── vite.config.js
+├── vercel.json
 └── tailwind.config.js
 ```
 
@@ -123,11 +128,21 @@ yarn preview
 1. 首先尝试播放本地音频文件 `notification.mp3`
 2. 如果失败，使用 Web Audio API 生成备用提示音
 
+性能优化：
+- 定时器每 100ms 检查一次，确保音频及时播放
+- 倒计时过期立即播放，无需等待
+
 ### 本地存储
 
 应用使用 localStorage 持久化存储：
 - `countdowns` - 所有倒计时数据
 - `notifiedCountdowns` - 已提醒的倒计时 ID 列表
+
+### 部署说明
+
+项目已部署到 Vercel：
+- 自动部署：每次推送到 GitHub master 分支都会自动构建和部署
+- 部署链接：https://countdown-di-di-di.vercel.app/
 
 ## 贡献
 

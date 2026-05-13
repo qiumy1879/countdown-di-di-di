@@ -6,13 +6,13 @@ const useCountdowns = () => {
   const [countdowns, setCountdowns] = useLocalStorage('countdowns', []);
   const [currentTime, setCurrentTime] = useState(Date.now());
   const [notifiedCountdowns, setNotifiedCountdowns] = useLocalStorage('notifiedCountdowns', []);
-  const audioPlayedRef = useRef(false);
+  const audioPlayedRef = useRef({});
 
-  // 每秒更新当前时间
+  // 更精确的定时器，每100ms更新一次
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(Date.now());
-    }, 1000);
+    }, 100);
 
     return () => clearInterval(timer);
   }, []);
@@ -38,40 +38,27 @@ const useCountdowns = () => {
     });
   }, [countdowns, calculateRemainingTime]);
 
-  // 检查并播放提醒 - 现在放在 getUpdatedCountdowns 之后定义
+  // 检查并播放提醒
   useEffect(() => {
     const updatedCountdowns = getUpdatedCountdowns();
     
-    console.log('[音频检测] useEffect 触发');
-    console.log('[音频检测] updatedCountdowns:', updatedCountdowns);
-    console.log('[音频检测] notifiedCountdowns:', notifiedCountdowns);
-    console.log('[音频检测] audioPlayedRef:', audioPlayedRef.current);
-    
     const checkExpiredCountdowns = async () => {
-      if (audioPlayedRef.current) {
-        console.log('[音频检测] audioPlayedRef 为 true，跳过');
-        return;
-      }
-      
       for (const countdown of updatedCountdowns) {
-        console.log('[音频检测] 检查倒计时:', countdown.id, countdown.title, 'remainingTime:', countdown.remainingTime);
         const isExpired = countdown.remainingTime <= 0;
         const isCompleted = countdown.completed;
         const hasNotified = notifiedCountdowns.includes(countdown.id);
+        const alreadyPlayed = audioPlayedRef.current[countdown.id];
         
-        console.log('[音频检测] isExpired:', isExpired, 'isCompleted:', isCompleted, 'hasNotified:', hasNotified);
-        
-        if (isExpired && !isCompleted && !hasNotified) {
-          console.log('[音频检测] 触发音频播放!');
-          audioPlayedRef.current = true;
+        // 如果倒计时过期、未完成、未提醒、且未播放过音频
+        if (isExpired && !isCompleted && !hasNotified && !alreadyPlayed) {
+          // 立即标记已播放，防止重复
+          audioPlayedRef.current[countdown.id] = true;
           
-          await playNotificationSound();
+          // 立即播放音频
+          playNotificationSound();
           
+          // 添加到已提醒列表
           setNotifiedCountdowns(prev => [...prev, countdown.id]);
-          
-          setTimeout(() => {
-            audioPlayedRef.current = false;
-          }, 1000);
         }
       }
     };
@@ -98,6 +85,7 @@ const useCountdowns = () => {
     );
     
     setNotifiedCountdowns(prev => prev.filter(notifiedId => notifiedId !== id));
+    delete audioPlayedRef.current[id];
   }, [setCountdowns, setNotifiedCountdowns]);
 
   // 重新倒计时
@@ -119,6 +107,7 @@ const useCountdowns = () => {
     );
     
     setNotifiedCountdowns(prev => prev.filter(notifiedId => notifiedId !== id));
+    delete audioPlayedRef.current[id];
   }, [setCountdowns, setNotifiedCountdowns]);
 
   // 删除倒计时
@@ -128,6 +117,7 @@ const useCountdowns = () => {
     );
     
     setNotifiedCountdowns(prev => prev.filter(notifiedId => notifiedId !== id));
+    delete audioPlayedRef.current[id];
   }, [setCountdowns, setNotifiedCountdowns]);
 
   return {
